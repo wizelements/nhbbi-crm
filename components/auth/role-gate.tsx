@@ -1,5 +1,6 @@
 'use client'
 
+import { type ReactNode } from 'react'
 import { useSession } from 'next-auth/react'
 import { type UserRole, hasRole } from '@/lib/auth'
 import { Button } from '@/components/ui/button'
@@ -7,8 +8,8 @@ import Link from 'next/link'
 
 interface RoleGateProps {
   allowedRole: UserRole
-  fallback?: React.ReactNode
-  children: React.ReactNode
+  fallback?: ReactNode
+  children: ReactNode
 }
 
 export function RoleGate({ allowedRole, fallback, children }: RoleGateProps) {
