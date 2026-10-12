@@ -8,8 +8,8 @@ const nextConfig = {
     ],
     formats: ['image/webp', 'image/avif'],
   },
+  serverExternalPackages: ['@libsql/client'],
   experimental: {
-    serverComponentsExternalPackages: ['@libsql/client'],
     // Android/Termux arm64 has no native Next.js SWC binary; force WASM-first.
     useWasmBinary: true,
     // Disable build workers / parallel traces that fork without wasm env.

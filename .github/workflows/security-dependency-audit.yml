@@ -1,0 +1,24 @@
+name: NHBBI production dependency audit
+on:
+  push:
+    branches: [security/next15-lts-20261012]
+  pull_request:
+    paths:
+      - 'package.json'
+      - 'package-lock.json'
+      - '.github/workflows/security-dependency-audit.yml'
+permissions:
+  contents: read
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+      - name: Clean reproducible install
+        run: npm ci
+      - name: Block unresolved high or critical production dependencies
+        run: npm audit --omit=dev --audit-level=high
