@@ -1,0 +1,23 @@
+name: NHBBI native numeric role adapter
+on:
+  push:
+    branches: [feat/nhbbi-native-admin-adapter-20261012]
+  pull_request:
+    paths:
+      - 'integrations/native-nhbbi/**'
+      - '.github/workflows/nhbbi-native-admin-ci.yml'
+permissions:
+  contents: read
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+      - run: npm ci
+      - run: npm run typecheck
+      - run: npx vitest run integrations/native-nhbbi
+      - run: python3 integrations/native-nhbbi/test_migration.py
