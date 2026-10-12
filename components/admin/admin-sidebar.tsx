@@ -62,8 +62,8 @@ export function AdminSidebar({ user, permissions }: { user: AuthUser, permission
         })}
       </nav>
 
-      <nav className="flex items-center gap-1 md:hidden">
-        {visibleItems.slice(0, 4).map((item) => {
+      <nav aria-label="Admin navigation" className="flex max-w-[70vw] items-center gap-1 overflow-x-auto md:hidden">
+        {visibleItems.map((item) => {
           const Icon = item.icon
           const active = pathname === item.href || pathname.startsWith(`${item.href}/`)
           return (

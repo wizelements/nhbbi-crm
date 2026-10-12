@@ -10,6 +10,7 @@ export function RoleManager() {
   const [data,setData]=useState<Data>()
   const [busy,setBusy]=useState(false)
   const [message,setMessage]=useState('')
+  const [editingId,setEditingId]=useState('')
   const [name,setName]=useState('')
   const [description,setDescription]=useState('')
   const [permissions,setPermissions]=useState<Permission[]>([])
@@ -36,9 +37,9 @@ export function RoleManager() {
   return <div className="grid gap-6 lg:grid-cols-2">
     {message&&<p role="status" className="rounded-lg border bg-white p-4 text-sm lg:col-span-2">{message}</p>}
     <section className="rounded-2xl border bg-white p-6 shadow-sm">
-      <h2 className="text-xl font-semibold">Create a role</h2>
+      <h2 id="new-role" className="text-xl font-semibold">{editingId?'Edit staff role':'Create a role'}</h2>
       <p className="my-2 text-sm text-slate-600">Choose the minimum activities this role needs.</p>
-      <form className="space-y-4" onSubmit={async e=>{e.preventDefault();if(await submit('/api/admin/roles','POST',{name,description,permissions})){setName('');setDescription('');setPermissions([])}}}>
+      <form className="space-y-4" onSubmit={async e=>{e.preventDefault();if(await submit('/api/admin/roles',editingId?'PATCH':'POST',{...(editingId?{id:editingId}:{}),name,description,permissions})){setEditingId('');setName('');setDescription('');setPermissions([])}}}>
         <label className="block text-sm font-medium">Role name<input required minLength={2} maxLength={64} value={name} onChange={e=>setName(e.target.value)} placeholder="Events Coordinator" className="mt-1 w-full rounded-lg border p-3" /></label>
         <label className="block text-sm font-medium">Description<textarea maxLength={240} rows={2} value={description} onChange={e=>setDescription(e.target.value)} className="mt-1 w-full rounded-lg border p-3" /></label>
         <fieldset className="space-y-2"><legend className="mb-2 text-sm font-medium">Permissions</legend>
@@ -47,7 +48,8 @@ export function RoleManager() {
             <span>{PERMISSIONS[p]}<small className="block text-slate-500">{p}</small></span>
           </label>)}
         </fieldset>
-        <button disabled={busy||!permissions.length||!name.trim()} className="w-full rounded-lg bg-slate-950 p-3 font-medium text-white disabled:opacity-40">Create staff role</button>
+        <button disabled={busy||!permissions.length||!name.trim()} className="w-full rounded-lg bg-slate-950 p-3 font-medium text-white disabled:opacity-40">{editingId?'Save role changes':'Create staff role'}</button>
+        {editingId&&<button type="button" className="w-full rounded-lg border p-3" onClick={()=>{setEditingId('');setName('');setDescription('');setPermissions([])}}>Cancel editing</button>}
       </form>
     </section>
     <div className="space-y-6">
@@ -77,7 +79,8 @@ export function RoleManager() {
           <h3 className="font-semibold">{r.name} <span className="text-xs font-normal text-slate-500">{r.active?'Active':'Disabled'}</span></h3>
           <p className="my-2 text-sm text-slate-600">{r.description}</p>
           <p className="mb-3 text-xs text-slate-600">{r.permissions.join(' · ')}</p>
-          <button type="button" disabled={busy} className="rounded-lg border px-3 py-2 text-sm" onClick={()=>void submit('/api/admin/roles','PATCH',{id:r.id,active:!r.active})}>{r.active?'Disable role':'Enable role'}</button>
+          <button type="button" disabled={busy} className="rounded-lg border px-3 py-2 text-sm" onClick={()=>{setEditingId(r.id);setName(r.name);setDescription(r.description);setPermissions(r.permissions);document.getElementById('new-role')?.scrollIntoView({behavior:'smooth'})}}>Edit</button>
+          <button type="button" disabled={busy} className="ml-2 rounded-lg border px-3 py-2 text-sm" onClick={()=>void submit('/api/admin/roles','PATCH',{id:r.id,active:!r.active})}>{r.active?'Disable role':'Enable role'}</button>
           <button type="button" disabled={busy} className="ml-2 rounded-lg border px-3 py-2 text-sm text-red-700" onClick={()=>{if(window.confirm('Delete role? Remove its assignments first.'))void submit('/api/admin/roles?id='+r.id,'DELETE',{})}}>Delete</button>
         </div>)}
       </section>
