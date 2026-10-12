@@ -8,8 +8,6 @@ import { logActivity } from '@/lib/admin/activity'
 
 const updateSchema = z.object({
   userId: z.string().uuid(),
-  membershipStatus: z.enum(['active', 'pending', 'cancelled', 'expired']).optional(),
-  membershipTier: z.enum(['bronze', 'silver', 'gold']).optional(),
   profileApproved: z.boolean().optional(),
 })
 
@@ -78,16 +76,15 @@ export async function PATCH(request: Request) {
     return NextResponse.json({ error: 'Invalid input', issues: parsed.error.flatten() }, { status: 400 })
   }
 
-  const { userId, membershipStatus, membershipTier, profileApproved } = parsed.data
-
-  if (membershipStatus || membershipTier) {
-    const update: Partial<typeof memberships.$inferInsert> = {}
-    if (membershipStatus) update.status = membershipStatus
-    if (membershipTier) update.tier = membershipTier
-    update.updatedAt = new Date()
-    await db.update(memberships).set(update).where(eq(memberships.userId, userId))
+  const { userId, profileApproved } = parsed.data
+  if (Object.prototype.hasOwnProperty.call(body, 'membershipStatus') ||
+      Object.prototype.hasOwnProperty.call(body, 'membershipTier') ||
+      Object.prototype.hasOwnProperty.call(body, 'role')) {
+    return NextResponse.json({ error: 'Membership billing and account roles cannot be changed through this endpoint' }, { status: 403 })
   }
-
+  if (profileApproved === undefined) {
+    return NextResponse.json({ error: 'No supported change provided' }, { status: 400 })
+  }
   if (typeof profileApproved === 'boolean') {
     await db
       .update(memberProfiles)
@@ -101,7 +98,7 @@ export async function PATCH(request: Request) {
     action: 'member_updated',
     entityType: 'user',
     entityId: userId,
-    metadata: { membershipStatus, membershipTier, profileApproved },
+    metadata: { profileApproved },
   })
 
   return NextResponse.json({ ok: true })

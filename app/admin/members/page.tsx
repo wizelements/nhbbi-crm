@@ -1,6 +1,6 @@
 import { redirect } from 'next/navigation'
 import { auth } from '@/auth'
-import { canAdmin } from '@/lib/admin/access'
+import { canAdmin, getAdminAccess } from '@/lib/admin/access'
 import { db, users, memberships, memberProfiles } from '@/lib/db'
 import { eq, sql } from 'drizzle-orm'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -40,12 +40,13 @@ export default async function AdminMembersPage() {
   }
 
   const members = await getMembers()
+  const permissions = (await getAdminAccess(session?.user?.id)).permissions
 
   return (
     <div className="space-y-6">
       <div>
         <h2 className="text-2xl font-bold tracking-tight">Members</h2>
-        <p className="text-muted-foreground">Manage member accounts, tiers, and approvals.</p>
+        <p className="text-muted-foreground">Review memberships and approve business profiles. Billing changes are controlled through Square.</p>
       </div>
 
       <Card>
@@ -54,7 +55,7 @@ export default async function AdminMembersPage() {
           <Badge variant="navy">{members.length}</Badge>
         </CardHeader>
         <CardContent>
-          <MembersTable members={members} />
+          <MembersTable members={members} canManage={permissions.includes('members.manage')} />
         </CardContent>
       </Card>
     </div>

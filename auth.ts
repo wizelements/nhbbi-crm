@@ -17,6 +17,7 @@ async function ensureFirstAdmin() {
 
   const email = env.ADMIN_DEFAULT_EMAIL
   const password = env.ADMIN_DEFAULT_PASSWORD
+  if (password.length < 16 || password === 'ChangeMeNow!') throw new Error('Secure admin bootstrap credentials required')
   const passwordHash = await hashPassword(password)
 
   await db.insert(users).values({

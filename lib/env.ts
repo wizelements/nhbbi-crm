@@ -23,7 +23,7 @@ export const env = createEnv({
     JWT_SECRET: z.string().min(32),
     ADMIN_SETUP_SECRET: z.string().min(1),
     ADMIN_DEFAULT_EMAIL: z.string().email().default('admin@nhbbi.org'),
-    ADMIN_DEFAULT_PASSWORD: z.string().min(8).default('ChangeMeNow!'),
+    ADMIN_DEFAULT_PASSWORD: z.string().min(16),
     ADMIN_API_TOKEN: z.string().min(1),
     AI_AGENT_SECRET: z.string().min(1),
     CRON_SECRET: z.string().min(1),
