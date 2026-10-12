@@ -8,13 +8,15 @@ import { validDelegation } from '@/lib/admin/permission-catalog'
 import { logActivity } from '@/lib/admin/activity'
 
 export const runtime = 'nodejs'
-const schema = z.object({
+const roleInputs = z.object({
   name: z.string().trim().min(2).max(64),
   description: z.string().trim().max(240).default(''),
   permissions: z.array(z.string()).min(1).max(12),
   active: z.boolean().default(true),
-}).refine(input => validDelegation(input.permissions), 'Permissions cannot include owner-only actions')
-const change = schema.partial().extend({ id: z.string().uuid() })
+})
+const schema = roleInputs.refine(input => validDelegation(input.permissions), 'Permissions cannot include owner-only actions')
+const change = roleInputs.partial().extend({ id: z.string().uuid() })
+  .refine(input => input.permissions === undefined || validDelegation(input.permissions), 'Permissions cannot include owner-only actions')
 
 async function requireOwner() {
   const session = await auth()

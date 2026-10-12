@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
 import { auth } from '@/auth'
-import { isAdmin, isMember } from '@/lib/auth'
+import { isMember } from '@/lib/auth'
 
 export default auth((req) => {
   const { nextUrl } = req
@@ -10,7 +10,7 @@ export default auth((req) => {
   const isAdminRoute = pathname.startsWith('/admin')
   const isMemberRoute = pathname.startsWith('/member')
 
-  if (isAdminRoute && !isAdmin(user)) {
+  if (isAdminRoute && !user?.id) {
     const loginUrl = new URL('/login', nextUrl)
     loginUrl.searchParams.set('callbackUrl', pathname)
     return NextResponse.redirect(loginUrl)

@@ -12,34 +12,37 @@ import {
   MessageSquare,
   ShoppingCart,
   Bot,
-  Settings,
+  ShieldCheck,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import type { AuthUser } from '@/lib/auth'
+import type { Permission } from '@/lib/admin/permission-catalog'
 
 const navItems = [
-  { href: '/admin/dashboard', label: 'Dashboard', icon: LayoutDashboard },
-  { href: '/admin/members', label: 'Members', icon: Users },
-  { href: '/admin/directory', label: 'Directory', icon: Building2 },
-  { href: '/admin/events', label: 'Events', icon: CalendarDays },
-  { href: '/admin/jobs', label: 'Jobs', icon: Briefcase },
-  { href: '/admin/leads', label: 'Leads', icon: MessageSquare },
-  { href: '/admin/orders', label: 'Orders', icon: ShoppingCart },
-  { href: '/admin/ai-agent', label: 'AI Agent', icon: Bot },
+  { href: '/admin/dashboard', label: 'Dashboard', icon: LayoutDashboard, permission: 'roles.manage' },
+  { href: '/admin/members', label: 'Members', icon: Users, permission: 'members.view' },
+  { href: '/admin/directory', label: 'Directory', icon: Building2, permission: 'directory.view' },
+  { href: '/admin/events', label: 'Events', icon: CalendarDays, permission: 'events.view' },
+  { href: '/admin/jobs', label: 'Jobs', icon: Briefcase, permission: 'jobs.view' },
+  { href: '/admin/leads', label: 'Leads', icon: MessageSquare, permission: 'leads.view' },
+  { href: '/admin/orders', label: 'Orders', icon: ShoppingCart, permission: 'orders.view' },
+  { href: '/admin/ai-agent', label: 'AI Agent', icon: Bot, permission: 'ai.view' },
+  { href: '/admin/roles', label: 'People & Roles', icon: ShieldCheck, permission: 'roles.manage' },
 ]
 
-export function AdminSidebar({ user }: { user: AuthUser }) {
+export function AdminSidebar({ user, permissions }: { user: AuthUser, permissions: Permission[] }) {
   const pathname = usePathname()
+  const visibleItems = navItems.filter(item => permissions.includes(item.permission as Permission))
 
   return (
     <aside className="sticky top-0 z-30 flex h-16 w-full flex-row items-center justify-between border-b bg-navy px-4 text-white md:h-screen md:w-64 md:flex-col md:items-stretch md:justify-start md:px-0 md:py-6">
       <div className="flex items-center gap-3 px-0 md:px-6">
         <div className="flex h-8 w-8 items-center justify-center rounded bg-gold font-bold text-navy">N</div>
-        <span className="hidden text-lg font-bold md:inline">NHBBJ Admin</span>
+        <span className="hidden text-lg font-bold md:inline">NHBBI Workspace</span>
       </div>
 
       <nav className="hidden flex-1 space-y-1 overflow-y-auto px-3 py-6 md:block">
-        {navItems.map((item) => {
+        {visibleItems.map((item) => {
           const Icon = item.icon
           const active = pathname === item.href || pathname.startsWith(`${item.href}/`)
           return (
@@ -60,7 +63,7 @@ export function AdminSidebar({ user }: { user: AuthUser }) {
       </nav>
 
       <nav className="flex items-center gap-1 md:hidden">
-        {navItems.slice(0, 6).map((item) => {
+        {visibleItems.slice(0, 4).map((item) => {
           const Icon = item.icon
           const active = pathname === item.href || pathname.startsWith(`${item.href}/`)
           return (

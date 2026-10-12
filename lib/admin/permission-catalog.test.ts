@@ -5,6 +5,7 @@ describe('admin role boundary', () => {
   it('does not delegate role creation / assignment', () => {
     expect(validDelegation(['roles.manage'])).toBe(false)
     expect(DELEGABLE_PERMISSIONS).not.toContain('roles.manage')
+    expect(DELEGABLE_PERMISSIONS).not.toContain('ai.view')
     expect(PERMISSION_KEYS).toContain('roles.manage')
   })
   it('requires explicit permissions', () => {

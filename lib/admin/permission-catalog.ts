@@ -17,7 +17,7 @@ export const PERMISSIONS = {
 
 export type Permission = keyof typeof PERMISSIONS
 export const PERMISSION_KEYS = Object.keys(PERMISSIONS) as Permission[]
-export const DELEGABLE_PERMISSIONS = PERMISSION_KEYS.filter(p => p !== 'roles.manage')
+export const DELEGABLE_PERMISSIONS = PERMISSION_KEYS.filter(p => p !== 'roles.manage' && p !== 'ai.view')
 export const hasPermission = (permissions: readonly Permission[], permission: Permission) =>
   permissions.includes(permission)
 export const validDelegation = (requested: readonly string[]) =>
