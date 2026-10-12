@@ -5,6 +5,9 @@
 ## Verified basis
 Live Vercel deployment source uses `getCurrentUser()`, numeric `AccountUser.id`, `role: member | admin`, a hashed `nhbbi_session` cookie, and the native `nhbbi_*` Turso tables. Historic GitHub `wizelements/nhbbi` is **archived** and its `main` branch is only a README. Historic `master` is an earlier version, not the current Vercel upload. Do not overwrite production with either historic branch.
 
+## Live database safety correction
+The current Vercel source `src/lib/db.ts` uses `process.env.TURSO_DATABASE_URL || 'file:nhbbi-local.db'`. That fallback creates a nonpersistent, unwritable database on serverless Vercel and caused recorded production health errors in earlier deployments. In the recovered source, replace this fallback with `liveDatabaseConfig(process.env)` from this adapter; configuration errors should yield a controlled 503 health response without logging credentials. Unit tests enforce that production cannot use local SQLite. This change is NOT live-installed.
+
 ## Integration order
 1. Recover the EXACT active Vercel deployment's full source into a writable, protected Git repository; review file hashes and keep a rollback deployment ID.
 2. Inspect the production users/session table schema read-only and run migration against a separate cloned Preview database. Do not guess an account table or use email as a foreign key.
