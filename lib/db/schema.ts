@@ -157,3 +157,25 @@ export const aiAgentSessions = sqliteTable('ai_agent_sessions', {
   result: text('result'),
   createdAt: integer('created_at', { mode: 'timestamp' }).notNull().default(sql`CURRENT_TIMESTAMP`),
 })
+
+/** Administrator-created job-scoped staff roles. Never grants built-in admin authority. */
+export const staffRoles = sqliteTable('staff_roles', {
+  id: text('id').primaryKey().$defaultFn(() => crypto.randomUUID()),
+  name: text('name').notNull(),
+  description: text('description').notNull().default(''),
+  permissions: text('permissions').notNull().default('[]'),
+  active: integer('active', { mode: 'boolean' }).notNull().default(true),
+  createdBy: text('created_by').references(() => users.id, { onDelete: 'set null' }),
+  createdAt: integer('created_at', { mode: 'timestamp' }).notNull().default(sql`(unixepoch())`),
+  updatedAt: integer('updated_at', { mode: 'timestamp' }).notNull().default(sql`(unixepoch())`),
+})
+
+export const staffRoleAssignments = sqliteTable('staff_role_assignments', {
+  id: text('id').primaryKey().$defaultFn(() => crypto.randomUUID()),
+  userId: text('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
+  roleId: text('role_id').notNull().references(() => staffRoles.id, { onDelete: 'cascade' }),
+  assignedBy: text('assigned_by').references(() => users.id, { onDelete: 'set null' }),
+  createdAt: integer('created_at', { mode: 'timestamp' }).notNull().default(sql`(unixepoch())`),
+}, table => ({
+  uniqueAssignment: uniqueIndex('staff_role_assignments_unique').on(table.userId, table.roleId),
+}))

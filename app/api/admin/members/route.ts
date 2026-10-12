@@ -8,7 +8,6 @@ import { logActivity } from '@/lib/admin/activity'
 
 const updateSchema = z.object({
   userId: z.string().uuid(),
-  role: z.enum(['visitor', 'member', 'admin']).optional(),
   membershipStatus: z.enum(['active', 'pending', 'cancelled', 'expired']).optional(),
   membershipTier: z.enum(['bronze', 'silver', 'gold']).optional(),
   profileApproved: z.boolean().optional(),
@@ -55,7 +54,12 @@ export async function GET(request: Request) {
 
   return NextResponse.json({
     members: rows.map((row) => ({
-      ...row.user,
+      id: row.user.id,
+      email: row.user.email,
+      role: row.user.role,
+      firstName: row.user.firstName,
+      lastName: row.user.lastName,
+      createdAt: row.user.createdAt,
       membership: row.membership,
       profile: row.profile,
     })),
@@ -74,11 +78,7 @@ export async function PATCH(request: Request) {
     return NextResponse.json({ error: 'Invalid input', issues: parsed.error.flatten() }, { status: 400 })
   }
 
-  const { userId, role, membershipStatus, membershipTier, profileApproved } = parsed.data
-
-  if (role) {
-    await db.update(users).set({ role }).where(eq(users.id, userId))
-  }
+  const { userId, membershipStatus, membershipTier, profileApproved } = parsed.data
 
   if (membershipStatus || membershipTier) {
     const update: Partial<typeof memberships.$inferInsert> = {}
@@ -101,7 +101,7 @@ export async function PATCH(request: Request) {
     action: 'member_updated',
     entityType: 'user',
     entityId: userId,
-    metadata: { role, membershipStatus, membershipTier, profileApproved },
+    metadata: { membershipStatus, membershipTier, profileApproved },
   })
 
   return NextResponse.json({ ok: true })

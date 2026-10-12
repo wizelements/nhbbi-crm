@@ -4,13 +4,7 @@ import { eq } from 'drizzle-orm'
 import { z } from 'zod'
 import { db, users } from '@/lib/db'
 import { env } from '@/lib/env'
-import {
-  verifyPassword,
-  isValidRole,
-  isAdminSetupSecret,
-  hashPassword,
-  type UserRole,
-} from '@/lib/auth'
+import { verifyPassword, isValidRole, isAdminSetupSecret, hashPassword, type UserRole } from '@/lib/auth'
 
 const credentialsSchema = z.object({
   email: z.string().email(),
@@ -81,7 +75,7 @@ export const {
     }),
   ],
   callbacks: {
-    async jwt({ token, user, trigger, session }) {
+    async jwt({ token, user }) {
       if (user) {
         token.id = user.id
         token.email = user.email
@@ -89,14 +83,6 @@ export const {
         token.firstName = user.firstName ?? null
         token.lastName = user.lastName ?? null
       }
-
-      if (trigger === 'update' && session) {
-        const candidate = (session as Record<string, unknown>).role
-        if (isValidRole(candidate)) {
-          token.role = candidate
-        }
-      }
-
       return token
     },
     async session({ session, token }) {
