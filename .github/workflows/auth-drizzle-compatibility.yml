@@ -1,0 +1,33 @@
+name: NHBBI auth-ORM patch compatibility
+on:
+  push:
+    branches: [security/auth-drizzle-remediation-20261012]
+    paths: ['.github/workflows/auth-drizzle-compatibility.yml']
+permissions:
+  contents: write
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+      - run: npm ci
+      - name: Install patched Auth.js and Drizzle temporarily
+        run: npm install --save-exact @auth/core@0.41.3 drizzle-orm@0.45.4
+      - name: Reinstall patched lockfile
+        run: npm ci
+      - name: Validate application type safety
+        run: npm run typecheck
+      - name: Validate access-control tests
+        run: npx vitest run lib/admin
+      - name: Save reviewed dependency versions on this isolated branch
+        run: |
+          git config user.name 'nhbbi-ci'
+          git config user.email 'nhbbi-ci@users.noreply.github.com'
+          git add package.json package-lock.json
+          if git diff --cached --quiet; then exit 0; fi
+          git commit -m 'security(deps): patch Auth.js and Drizzle'
+          git push origin HEAD:security/auth-drizzle-remediation-20261012
