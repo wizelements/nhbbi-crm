@@ -65,7 +65,7 @@ export async function PATCH(request: Request) {
     ...(updates.name !== undefined ? { name: updates.name } : {}),
     ...(updates.description !== undefined ? { description: updates.description } : {}),
     ...(updates.active !== undefined ? { active: updates.active } : {}),
-    ...(updates.permissions !== undefined ? { permissions: JSON.stringify([...new Set(updates.permissions)]) } : {}),
+    ...(updates.permissions !== undefined ? { permissions: JSON.stringify(Array.from(new Set(updates.permissions))) } : {}),
     updatedAt: new Date(),
   }).where(eq(staffRoles.id, id))
   await logActivity({ actorType: 'user', actorId: session.user.id, action: 'staff_role_updated',
