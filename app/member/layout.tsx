@@ -1,7 +1,7 @@
 import type { ReactNode } from 'react'
 import { redirect } from 'next/navigation'
 import { auth } from '@/auth'
-import { isMember } from '@/lib/auth'
+import { canMember } from '@/lib/admin/access'
 import { MemberShell } from '@/components/member/member-shell'
 
 export const metadata = {
@@ -15,7 +15,7 @@ export default async function MemberLayout({
   children: ReactNode
 }) {
   const session = await auth()
-  if (!session || !isMember(session.user)) {
+  if (!session?.user?.id || !(await canMember(session.user.id))) {
     redirect('/login?callbackUrl=/member/dashboard')
   }
 

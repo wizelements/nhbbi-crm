@@ -1,14 +1,14 @@
 import { NextResponse } from 'next/server'
 import { eq } from 'drizzle-orm'
 import { auth } from '@/auth'
-import { isMember } from '@/lib/auth'
+import { canMember } from '@/lib/admin/access'
 import { db, users, memberProfiles } from '@/lib/db'
 import { profileUpdateSchema } from '@/lib/validations/member'
 import { logActivity } from '@/lib/admin/activity'
 
 export async function GET() {
   const session = await auth()
-  if (!session || !isMember(session.user)) {
+  if (!session?.user?.id || !(await canMember(session.user.id))) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
@@ -35,7 +35,7 @@ export async function GET() {
 
 export async function PATCH(request: Request) {
   const session = await auth()
-  if (!session || !isMember(session.user)) {
+  if (!session?.user?.id || !(await canMember(session.user.id))) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 

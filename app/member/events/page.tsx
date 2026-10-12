@@ -1,6 +1,6 @@
 import { redirect } from 'next/navigation'
 import { auth } from '@/auth'
-import { isMember } from '@/lib/auth'
+import { canMember } from '@/lib/admin/access'
 import { db, events, eventRegistrations } from '@/lib/db'
 import { eq, desc } from 'drizzle-orm'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
@@ -28,7 +28,7 @@ async function getRegisteredEvents(userId: string) {
 
 export default async function MemberEventsPage() {
   const session = await auth()
-  if (!session || !isMember(session.user)) {
+  if (!session?.user?.id || !(await canMember(session.user.id))) {
     redirect('/login?callbackUrl=/member/events')
   }
 

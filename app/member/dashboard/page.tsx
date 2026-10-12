@@ -1,7 +1,7 @@
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import { auth } from '@/auth'
-import { isMember } from '@/lib/auth'
+import { canMember } from '@/lib/admin/access'
 import { getAdminAccess } from '@/lib/admin/access'
 import { db, users, memberships, memberProfiles, directoryListings, jobs, events, eventRegistrations } from '@/lib/db'
 import { eq, sql, desc } from 'drizzle-orm'
@@ -80,7 +80,7 @@ async function getDashboardData(userId: string) {
 
 export default async function MemberDashboardPage() {
   const session = await auth()
-  if (!session || !isMember(session.user)) {
+  if (!session?.user?.id || !(await canMember(session.user.id))) {
     redirect('/login?callbackUrl=/member/dashboard')
   }
 
