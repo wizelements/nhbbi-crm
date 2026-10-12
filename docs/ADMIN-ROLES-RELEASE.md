@@ -20,6 +20,24 @@ The `nhbbi-crm` app currently lives in a separate GitHub/Vercel project from the
 4. Run CI, Playwright E2E on desktop and Android widths, and security tests for revoked access, cross-account writes, race-condition duplicate assignments, CSRF/origin controls, and audit trails. CI typechecking and permission-catalog unit tests alone are not end-to-end certification.
 5. Connect the production NHBBI site account model to the approved admin backend only after checkout, memberships, event registration, and directory data-source reconciliation. No isolated CRM data should be presented as production NHBBI truth.
 
+## Verified production identity and data mismatch (Oct 11, 2026)
+
+Live NHBBI source recovered read-only from Vercel's source upload uses:
+
+- `src/lib/auth.ts`: signed-in accounts have numeric `AccountUser.id`, role `member | admin`, and a hashed `nhbbi_session` cookie backed by `nhbbi_sessions`.
+- `src/lib/db.ts`: a libSQL/Turso connection and namespaced `nhbbi_*` tables including `nhbbi_businesses`, `nhbbi_jobs`, etc.
+- `src/app/account/page.tsx`: member self-service at `/account`.
+
+This CRM instead uses Auth.js credentials/JWT, UUID `users.id`, and unprefixed Drizzle tables. **Do not deploy the CRM admin panel at the live domain and assume the users, member records, payments, or directory listings are shared.** A deliberate source-control migration/native permission adapter and verified account mapping are required. Email address alone is not a safe foreign key.
+
+### Client and administrator release design
+
+- Admin home: an actionable queue for membership review, directory submissions, event tasks, leads needing follow-up, orders requiring reconciliation, and audit/security alerts.
+- Client home: membership and payment state, profile completion, directory listing status, registered events, business opportunities, and support. Own data only.
+- Role builder: least-privilege checkboxes, preview effective permissions, named roles, clearly labeled owner-only privileges, confirmation for changes affecting multiple assignees, and immediate revocation.
+- Every data mutation: validation, authorization, auditable actor, explicit result, informative failure, no blind success states.
+- No cross-database writes or background sync until idempotency, rollback, account mapping, and Square reconciliation are tested.
+
 ## Known blockers
 
 - Vercel Preview build fails during page-data collection with missing required configuration (APP_URL, BASE_URL, Turso, Square, JWT and auth secrets). Do not use dummy values to make a green build.
