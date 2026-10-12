@@ -2,7 +2,7 @@ name: NHBBI isolated framework compile
 on:
   push:
     branches: [security/next15-lts-20261012, security/next16-review-20261012]
-    paths: ['.github/workflows/framework-fixture-build.yml','next.config.js','package.json','package-lock.json','eslint.config.mjs']
+    paths: ['.github/workflows/framework-fixture-build.yml','next.config.js','package.json','package-lock.json','eslint.config.mjs','app/**','components/**','lib/**','tailwind.config.ts']
 permissions:
   contents: read
 jobs:
