@@ -1,6 +1,6 @@
 import { redirect } from 'next/navigation'
 import { auth } from '@/auth'
-import { isAdmin } from '@/lib/auth'
+import { canAdmin } from '@/lib/admin/access'
 import { db, users, memberships, memberProfiles } from '@/lib/db'
 import { eq, sql } from 'drizzle-orm'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -22,7 +22,12 @@ async function getMembers() {
     .limit(200)
 
   return rows.map((row) => ({
-    ...row.user,
+    id: row.user.id,
+    email: row.user.email,
+    role: row.user.role,
+    firstName: row.user.firstName,
+    lastName: row.user.lastName,
+    createdAt: row.user.createdAt,
     membership: row.membership,
     profile: row.profile,
   }))
@@ -30,7 +35,7 @@ async function getMembers() {
 
 export default async function AdminMembersPage() {
   const session = await auth()
-  if (!isAdmin(session?.user)) {
+  if (!(await canAdmin(session?.user?.id, 'members.view'))) {
     redirect('/login?callbackUrl=/admin/members')
   }
 

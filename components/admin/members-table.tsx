@@ -14,7 +14,7 @@ import {
 } from '@/components/ui/select'
 import type { users, memberships, memberProfiles } from '@/lib/db'
 
-type Member = typeof users.$inferSelect & {
+type Member = Pick<typeof users.$inferSelect, 'id' | 'email' | 'role' | 'firstName' | 'lastName' | 'createdAt'> & {
   membership: typeof memberships.$inferSelect | null
   profile: typeof memberProfiles.$inferSelect | null
 }

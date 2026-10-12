@@ -1,7 +1,7 @@
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import { auth } from '@/auth'
-import { isAdmin } from '@/lib/auth'
+import { canAdmin } from '@/lib/admin/access'
 import { db, users, memberships, leads, directoryListings, orders } from '@/lib/db'
 import { eq, sql } from 'drizzle-orm'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
@@ -57,7 +57,7 @@ async function getKpis() {
 
 export default async function AdminDashboardPage() {
   const session = await auth()
-  if (!isAdmin(session?.user)) {
+  if (!(await canAdmin(session?.user?.id, 'roles.manage'))) {
     redirect('/login?callbackUrl=/admin/dashboard')
   }
 

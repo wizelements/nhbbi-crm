@@ -1,6 +1,6 @@
 import { redirect } from 'next/navigation'
 import { auth } from '@/auth'
-import { isAdmin } from '@/lib/auth'
+import { canAdmin } from '@/lib/admin/access'
 import { db, events } from '@/lib/db'
 import { sql } from 'drizzle-orm'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -13,7 +13,7 @@ async function getEvents() {
 
 export default async function AdminEventsPage() {
   const session = await auth()
-  if (!isAdmin(session?.user)) {
+  if (!(await canAdmin(session?.user?.id, 'events.view'))) {
     redirect('/login?callbackUrl=/admin/events')
   }
 
