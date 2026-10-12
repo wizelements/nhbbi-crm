@@ -1,0 +1,39 @@
+name: Bounded Next.js 15 security migration
+on:
+  push:
+    branches: [security/next15-lts-20261012]
+    paths: ['.github/workflows/upgrade-next-security.yml']
+permissions:
+  contents: write
+jobs:
+  upgrade:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+      - name: Install current reproducible dependencies
+        run: npm ci
+      - name: Move off unsupported Next.js 14
+        run: |
+          npm uninstall @next/swc-wasm-nodejs
+          npm install --save-exact next@15.5.27 react@19.2.6 react-dom@19.2.6
+          npm install --save-dev eslint-config-next@15.5.27 @types/react@^19 @types/react-dom@^19
+      - name: Reproduce dependency lock
+        run: npm ci
+      - name: Typecheck upgraded app
+        run: npm run typecheck
+      - name: Run authorization regression suite
+        run: npx vitest run lib/admin
+      - name: Commit only dependency files to this isolated branch
+        run: |
+          git config user.name 'nhbbi-ci'
+          git config user.email 'nhbbi-ci@users.noreply.github.com'
+          git add package.json package-lock.json
+          if git diff --cached --quiet; then exit 0; fi
+          git commit -m 'security(deps): update Next.js to 15.5.27 and React 19'
+          git push origin HEAD:security/next15-lts-20261012
