@@ -39,7 +39,7 @@ async function ensureCategory(name: string) {
   const objects = list.result.objects ?? []
 
   const existing = objects.find(
-    (obj: any) => obj.categoryData?.name?.toLowerCase() === name.toLowerCase()
+    (obj) => obj.categoryData?.name?.toLowerCase() === name.toLowerCase()
   )
 
   if (existing?.id) {
@@ -174,7 +174,7 @@ export async function listCatalogItems(types: string[] = ['ITEM', 'CATEGORY']) {
   let cursor: string | undefined
 
   do {
-    const response: any = await square.catalogApi.listCatalog(
+    const response: Awaited<ReturnType<typeof square.catalogApi.listCatalog>> = await square.catalogApi.listCatalog(
       undefined,
       types.join(','),
       cursor ? BigInt(cursor) : undefined,
@@ -195,21 +195,27 @@ export async function getCatalogItem(squareItemId: string) {
   return response.result.object
 }
 
-export function membershipTierFromSquareItem(item: any): MembershipCatalogInput | null {
-  const data = item?.itemData
-  if (!data) return null
-
-  const tier = data.variations?.[0]?.itemVariationData?.itemOptionValues?.[0]?.itemOptionId
-  if (!tier || !['bronze', 'silver', 'gold'].includes(tier)) return null
-
-  const priceMoney = data.variations?.[0]?.itemVariationData?.priceMoney
-  const priceCents = priceMoney?.amount ? Number(priceMoney.amount) : 0
-
-  return {
-    tier,
-    name: data.name,
-    description: data.description,
-    priceCents,
-    durationMonths: 12,
-  }
+const membershipCatalogObject = z.object({
+  itemData: z.object({
+    name: z.string(),
+    description: z.string().optional(),
+    variations: z.array(z.object({
+      itemVariationData: z.object({
+        itemOptionValues: z.array(z.object({itemOptionId:z.string()})).optional(),
+        priceMoney: z.object({amount:z.union([z.string(),z.number(),z.bigint()]).optional()}).optional(),
+      }).optional(),
+    })).optional(),
+  }),
+})
+export function membershipTierFromSquareItem(item: unknown): MembershipCatalogInput | null {
+  const parsed=membershipCatalogObject.safeParse(item)
+  if(!parsed.success) return null
+  const data=parsed.data.itemData
+  const option=data.variations?.[0]?.itemVariationData
+  const tierResult=membershipTierSchema.safeParse(option?.itemOptionValues?.[0]?.itemOptionId)
+  if(!tierResult.success) return null
+  const amount=option?.priceMoney?.amount
+  const priceCents=amount === undefined ? 0 : Number(amount)
+  if(!Number.isFinite(priceCents) || priceCents < 0) return null
+  return {tier:tierResult.data,name:data.name,description:data.description,priceCents,durationMonths:12}
 }

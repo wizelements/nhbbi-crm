@@ -21,7 +21,17 @@ export function RoleManager() {
     if(!result.ok) throw new Error('Unable to load roles. Check database migration and permissions.')
     setData(await result.json() as Data)
   }
-  useEffect(()=>{void reload().catch(e=>setMessage(String(e)))},[])
+  useEffect(()=>{
+    const controller=new AbortController()
+    void fetch('/api/admin/roles',{cache:'no-store',signal:controller.signal})
+      .then(async response=>{
+        if(!response.ok) throw new Error('Unable to load roles. Verify migration and access.')
+        return response.json() as Promise<Data>
+      })
+      .then(result=>setData(result))
+      .catch(error=>{if(!controller.signal.aborted) setMessage(error instanceof Error?error.message:'Roles unavailable')})
+    return ()=>controller.abort()
+  },[])
   async function submit(url:string,method:string,body:Record<string,unknown>) {
     setBusy(true);setMessage('')
     try {

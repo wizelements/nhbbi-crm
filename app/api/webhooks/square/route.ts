@@ -8,6 +8,8 @@ import {
   isWebhookVerificationSkipped,
   parseSquareWebhookBody,
   mapSquarePaymentStatus,
+  type SquareRawPayment,
+  type SquareRawOrder,
 } from '@/lib/square/webhooks'
 import { db } from '@/lib/db'
 import { orders, memberships, eventRegistrations } from '@/lib/db/schema'
@@ -103,7 +105,7 @@ export async function GET() {
   })
 }
 
-async function handlePaymentWebhook(payment: any) {
+async function handlePaymentWebhook(payment: SquareRawPayment) {
   const referenceId = payment.reference_id
   const squareOrderId = payment.order_id
   const squarePaymentId = payment.id
@@ -167,7 +169,7 @@ async function handlePaymentWebhook(payment: any) {
   }
 }
 
-async function handleOrderWebhook(squareOrder: any) {
+async function handleOrderWebhook(squareOrder: SquareRawOrder) {
   const squareOrderId = squareOrder.id
   if (!squareOrderId) return
 

@@ -2,7 +2,7 @@ import nextVitals from 'eslint-config-next/core-web-vitals'
 import nextTypescript from 'eslint-config-next/typescript'
 
 /** ESLint 9 flat configuration for Next.js 16. */
-export default [
+const eslintConfig = [
   ...nextVitals,
   ...nextTypescript,
   {
@@ -15,3 +15,5 @@ export default [
     ],
   },
 ]
+
+export default eslintConfig
