@@ -64,7 +64,7 @@ export async function createSquareOrder(input: CreateOrderInput) {
 
   const response = await square.ordersApi.createOrder({
     idempotencyKey: crypto.randomUUID(),
-    order: orderRequest as any,
+    order: orderRequest as unknown as NonNullable<Parameters<typeof square.ordersApi.createOrder>[0]['order']>,
   })
 
   const order = response.result.order
@@ -88,7 +88,7 @@ export async function createSquareOrder(input: CreateOrderInput) {
       basePriceCents: line.basePriceMoney?.amount ? Number(line.basePriceMoney.amount) : 0,
       totalCents: line.totalMoney?.amount ? Number(line.totalMoney.amount) : 0,
       catalogObjectId: line.catalogObjectId,
-      variationId: (line as any).variationId,
+      variationId: 'variationId' in line && typeof line.variationId === 'string' ? line.variationId : undefined,
     })) ?? [],
     raw: order,
   }

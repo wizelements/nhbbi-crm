@@ -68,7 +68,7 @@ export async function processSquarePayment(input: ProcessPaymentInput) {
     paymentRequest.verificationToken = parsed.verificationToken
   }
 
-  const response = await square.paymentsApi.createPayment(paymentRequest as any)
+  const response = await square.paymentsApi.createPayment(paymentRequest as unknown as Parameters<typeof square.paymentsApi.createPayment>[0])
   const payment = response.result.payment
 
   if (!payment?.id) {
