@@ -1,30 +1,16 @@
-import { NextResponse } from 'next/server'
-import { auth } from '@/auth'
-import { isAdmin, isMember } from '@/lib/auth'
-
-export default auth((req) => {
-  const { nextUrl } = req
-  const pathname = nextUrl.pathname
-  const user = req.auth?.user
-
-  const isAdminRoute = pathname.startsWith('/admin')
-  const isMemberRoute = pathname.startsWith('/member')
-
-  if (isAdminRoute && !isAdmin(user)) {
-    const loginUrl = new URL('/login', nextUrl)
-    loginUrl.searchParams.set('callbackUrl', pathname)
-    return NextResponse.redirect(loginUrl)
+import { NextResponse, type NextRequest } from 'next/server'
+import { isSameOriginMutation } from '@/lib/admin/request-integrity'
+/**
+ * Auth and authorization are enforced by protected server layouts and API
+ * handlers; do not import Node.js bcrypt/DB-backed Auth.js into Edge middleware.
+ * This middleware adds same-origin integrity checks on authenticated writes.
+ */
+export function middleware(request: NextRequest) {
+  if (!isSameOriginMutation(request.method, request.headers.get('origin'), request.nextUrl.origin)) {
+    return NextResponse.json({ error: 'Cross-origin changes are not permitted' }, { status: 403 })
   }
-
-  if (isMemberRoute && !isMember(user)) {
-    const loginUrl = new URL('/login', nextUrl)
-    loginUrl.searchParams.set('callbackUrl', pathname)
-    return NextResponse.redirect(loginUrl)
-  }
-
   return NextResponse.next()
-})
-
+}
 export const config = {
-  matcher: ['/admin/:path*', '/member/:path*', '/api/admin/:path*', '/api/member/:path*'],
+  matcher: ['/api/admin/:path*', '/api/ai', '/api/members/:path*'],
 }

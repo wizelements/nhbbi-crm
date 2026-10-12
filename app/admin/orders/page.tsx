@@ -1,6 +1,6 @@
 import { redirect } from 'next/navigation'
 import { auth } from '@/auth'
-import { isAdmin } from '@/lib/auth'
+import { canAdmin } from '@/lib/admin/access'
 import { db, orders, users } from '@/lib/db'
 import { sql, eq } from 'drizzle-orm'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -25,7 +25,7 @@ async function getOrders() {
 
 export default async function AdminOrdersPage() {
   const session = await auth()
-  if (!isAdmin(session?.user)) {
+  if (!(await canAdmin(session?.user?.id, 'orders.view'))) {
     redirect('/login?callbackUrl=/admin/orders')
   }
 

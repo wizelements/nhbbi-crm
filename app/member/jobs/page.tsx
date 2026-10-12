@@ -121,7 +121,7 @@ export default function MemberJobsPage() {
     <div className="space-y-8">
       <div>
         <h1 className="text-2xl font-bold text-navy">Job Postings</h1>
-        <p className="text-muted-foreground">Post opportunities from your business for the NHBBJ community.</p>
+        <p className="text-muted-foreground">Post opportunities from your business for the NHBBI community.</p>
       </div>
 
       {message && (

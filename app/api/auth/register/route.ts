@@ -2,14 +2,13 @@ import { NextResponse } from 'next/server'
 import { eq } from 'drizzle-orm'
 import { z } from 'zod'
 import { db, users } from '@/lib/db'
-import { hashPassword, isAdminSetupSecret } from '@/lib/auth'
+import { hashPassword } from '@/lib/auth'
 
 const registerSchema = z.object({
   email: z.string().email(),
   password: z.string().min(8),
   firstName: z.string().optional(),
   lastName: z.string().optional(),
-  adminSecret: z.string().optional(),
 })
 
 export async function POST(req: Request) {
@@ -28,7 +27,7 @@ export async function POST(req: Request) {
     )
   }
 
-  const { email, password, firstName, lastName, adminSecret } = parsed.data
+  const { email, password, firstName, lastName } = parsed.data
 
   const existing = await db
     .select({ id: users.id })
@@ -43,7 +42,7 @@ export async function POST(req: Request) {
     )
   }
 
-  const role = adminSecret && isAdminSetupSecret(adminSecret) ? 'admin' : 'member'
+  const role = 'member' // Administrative roles are assigned by authorized administrators only.
   const passwordHash = await hashPassword(password)
 
   const [user] = await db

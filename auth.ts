@@ -3,35 +3,12 @@ import Credentials from 'next-auth/providers/credentials'
 import { eq } from 'drizzle-orm'
 import { z } from 'zod'
 import { db, users } from '@/lib/db'
-import { env } from '@/lib/env'
-import {
-  verifyPassword,
-  isValidRole,
-  isAdminSetupSecret,
-  hashPassword,
-  type UserRole,
-} from '@/lib/auth'
+import { verifyPassword, isValidRole, type UserRole } from '@/lib/auth'
 
 const credentialsSchema = z.object({
   email: z.string().email(),
   password: z.string().min(1),
 })
-
-async function ensureFirstAdmin() {
-  const existing = await db.select().from(users).limit(1)
-  if (existing.length > 0) return
-
-  const email = env.ADMIN_DEFAULT_EMAIL
-  const password = env.ADMIN_DEFAULT_PASSWORD
-  const passwordHash = await hashPassword(password)
-
-  await db.insert(users).values({
-    email,
-    passwordHash,
-    role: 'admin',
-    emailVerified: true,
-  })
-}
 
 export const {
   handlers: { GET, POST },
@@ -56,8 +33,6 @@ export const {
         const parsed = credentialsSchema.safeParse(credentials)
         if (!parsed.success) return null
 
-        await ensureFirstAdmin()
-
         const { email, password } = parsed.data
         const [user] = await db
           .select()
@@ -81,7 +56,7 @@ export const {
     }),
   ],
   callbacks: {
-    async jwt({ token, user, trigger, session }) {
+    async jwt({ token, user }) {
       if (user) {
         token.id = user.id
         token.email = user.email
@@ -89,14 +64,6 @@ export const {
         token.firstName = user.firstName ?? null
         token.lastName = user.lastName ?? null
       }
-
-      if (trigger === 'update' && session) {
-        const candidate = (session as Record<string, unknown>).role
-        if (isValidRole(candidate)) {
-          token.role = candidate
-        }
-      }
-
       return token
     },
     async session({ session, token }) {
@@ -114,4 +81,3 @@ export const {
   },
 })
 
-export { isAdminSetupSecret }

@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
 import { auth } from '@/auth'
-import { isAdmin } from '@/lib/auth'
+import { canAdmin } from '@/lib/admin/access'
 import { db, users, memberships, memberProfiles } from '@/lib/db'
 import { eq, sql, like, or } from 'drizzle-orm'
 import { z } from 'zod'
@@ -8,15 +8,12 @@ import { logActivity } from '@/lib/admin/activity'
 
 const updateSchema = z.object({
   userId: z.string().uuid(),
-  role: z.enum(['visitor', 'member', 'admin']).optional(),
-  membershipStatus: z.enum(['active', 'pending', 'cancelled', 'expired']).optional(),
-  membershipTier: z.enum(['bronze', 'silver', 'gold']).optional(),
   profileApproved: z.boolean().optional(),
 })
 
 export async function GET(request: Request) {
   const session = await auth()
-  if (!session || !isAdmin(session.user)) {
+  if (!session || !(await canAdmin(session?.user?.id, 'members.view'))) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
@@ -55,7 +52,12 @@ export async function GET(request: Request) {
 
   return NextResponse.json({
     members: rows.map((row) => ({
-      ...row.user,
+      id: row.user.id,
+      email: row.user.email,
+      role: row.user.role,
+      firstName: row.user.firstName,
+      lastName: row.user.lastName,
+      createdAt: row.user.createdAt,
       membership: row.membership,
       profile: row.profile,
     })),
@@ -64,7 +66,7 @@ export async function GET(request: Request) {
 
 export async function PATCH(request: Request) {
   const session = await auth()
-  if (!session || !isAdmin(session.user)) {
+  if (!session || !(await canAdmin(session?.user?.id, 'members.manage'))) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
@@ -74,20 +76,15 @@ export async function PATCH(request: Request) {
     return NextResponse.json({ error: 'Invalid input', issues: parsed.error.flatten() }, { status: 400 })
   }
 
-  const { userId, role, membershipStatus, membershipTier, profileApproved } = parsed.data
-
-  if (role) {
-    await db.update(users).set({ role }).where(eq(users.id, userId))
+  const { userId, profileApproved } = parsed.data
+  if (Object.prototype.hasOwnProperty.call(body, 'membershipStatus') ||
+      Object.prototype.hasOwnProperty.call(body, 'membershipTier') ||
+      Object.prototype.hasOwnProperty.call(body, 'role')) {
+    return NextResponse.json({ error: 'Membership billing and account roles cannot be changed through this endpoint' }, { status: 403 })
   }
-
-  if (membershipStatus || membershipTier) {
-    const update: Partial<typeof memberships.$inferInsert> = {}
-    if (membershipStatus) update.status = membershipStatus
-    if (membershipTier) update.tier = membershipTier
-    update.updatedAt = new Date()
-    await db.update(memberships).set(update).where(eq(memberships.userId, userId))
+  if (profileApproved === undefined) {
+    return NextResponse.json({ error: 'No supported change provided' }, { status: 400 })
   }
-
   if (typeof profileApproved === 'boolean') {
     await db
       .update(memberProfiles)
@@ -101,7 +98,7 @@ export async function PATCH(request: Request) {
     action: 'member_updated',
     entityType: 'user',
     entityId: userId,
-    metadata: { role, membershipStatus, membershipTier, profileApproved },
+    metadata: { profileApproved },
   })
 
   return NextResponse.json({ ok: true })

@@ -1,7 +1,8 @@
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import { auth } from '@/auth'
-import { isMember } from '@/lib/auth'
+import { canMember } from '@/lib/admin/access'
+import { getAdminAccess } from '@/lib/admin/access'
 import { db, users, memberships, memberProfiles, directoryListings, jobs, events, eventRegistrations } from '@/lib/db'
 import { eq, sql, desc } from 'drizzle-orm'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
@@ -18,7 +19,7 @@ import {
 } from 'lucide-react'
 
 export const metadata = {
-  title: 'Dashboard — NHBBJ Member Portal',
+  title: 'Dashboard — NHBBI Member Portal',
   description: 'Overview of your membership, events, directory listing, and job postings.',
 }
 
@@ -79,11 +80,12 @@ async function getDashboardData(userId: string) {
 
 export default async function MemberDashboardPage() {
   const session = await auth()
-  if (!session || !isMember(session.user)) {
+  if (!session?.user?.id || !(await canMember(session.user.id))) {
     redirect('/login?callbackUrl=/member/dashboard')
   }
 
   const data = await getDashboardData(session.user.id)
+  const staff = await getAdminAccess(session.user.id)
 
   const membershipStatus = data.membership?.status ?? 'none'
   const membershipTier = data.membership?.tier ?? 'none'
@@ -99,6 +101,28 @@ export default async function MemberDashboardPage() {
           Here&apos;s everything happening with your membership right now.
         </p>
       </div>
+
+      <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6" aria-labelledby="next-steps-heading">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div><h2 id="next-steps-heading" className="text-lg font-semibold text-navy">Your next step</h2>
+            <p className="text-sm text-slate-600">Keep your membership and business presence current.</p></div>
+          {staff.permissions.length>0&&<Button asChild variant="outline" size="sm"><Link href="/admin">Open staff workspace <ArrowRight className="ml-2 h-4 w-4"/></Link></Button>}
+        </div>
+        <div className="mt-5 grid gap-3 md:grid-cols-3">
+          <Link href="/member/profile" className="rounded-xl border p-4 transition hover:border-gold">
+            <p className="font-semibold text-navy">{data.profile?.companyName?'Review your profile':'Complete your profile'}</p>
+            <p className="mt-1 text-sm text-slate-600">Keep your contact and company details accurate.</p>
+          </Link>
+          <Link href="/member/directory" className="rounded-xl border p-4 transition hover:border-gold">
+            <p className="font-semibold text-navy">{data.listings.length?'Manage your listing':'Add your business'}</p>
+            <p className="mt-1 text-sm text-slate-600">{data.listings.length?(data.listings[0].approved?'Your public listing is live.':'Your listing is awaiting review.'):'Create a listing for the business directory.'}</p>
+          </Link>
+          <Link href="/events" className="rounded-xl border p-4 transition hover:border-gold">
+            <p className="font-semibold text-navy">Explore upcoming events</p>
+            <p className="mt-1 text-sm text-slate-600">Find training, networking, and opportunities.</p>
+          </Link>
+        </div>
+      </section>
 
       {/* Membership status */}
       <section className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">

@@ -1,0 +1,28 @@
+name: NHBBI admin authorization checks
+on:
+  push:
+    branches: [feat/nhbbi-governed-admin-roles-20261011]
+  pull_request:
+    paths:
+      - 'lib/admin/**'
+      - 'app/admin/**'
+      - 'app/api/admin/**'
+      - 'auth.ts'
+      - 'middleware.ts'
+      - 'lib/db/schema.ts'
+      - '.github/workflows/admin-roles-ci.yml'
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+      - run: npm ci
+      - run: npm run typecheck
+      - run: npx vitest run lib/admin lib/notifications/cron-auth.test.ts
+      - run: python3 scripts/test-role-migration.py
