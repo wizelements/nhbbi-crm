@@ -64,7 +64,7 @@ export async function createSquareOrder(input: CreateOrderInput) {
 
   const response = await square.ordersApi.createOrder({
     idempotencyKey: crypto.randomUUID(),
-    order: orderRequest as NonNullable<Parameters<typeof square.ordersApi.createOrder>[0]['order']>,
+    order: orderRequest as unknown as NonNullable<Parameters<typeof square.ordersApi.createOrder>[0]['order']>,
   })
 
   const order = response.result.order

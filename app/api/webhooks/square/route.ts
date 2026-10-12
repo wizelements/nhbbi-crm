@@ -118,7 +118,7 @@ async function handlePaymentWebhook(payment: SquareRawPayment) {
 
   const existingOrder = referenceId
     ? await db.query.orders.findFirst({ where: eq(orders.id, referenceId) })
-    : await db.query.orders.findFirst({ where: eq(orders.squareOrderId, squareOrderId) })
+    : squareOrderId ? await db.query.orders.findFirst({ where: eq(orders.squareOrderId, squareOrderId) }) : null
 
   if (!existingOrder) {
     return
