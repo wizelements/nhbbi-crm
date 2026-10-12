@@ -19,7 +19,7 @@ import {
 } from 'lucide-react'
 
 export const metadata = {
-  title: 'Dashboard — NHBBJ Member Portal',
+  title: 'Dashboard — NHBBI Member Portal',
   description: 'Overview of your membership, events, directory listing, and job postings.',
 }
 

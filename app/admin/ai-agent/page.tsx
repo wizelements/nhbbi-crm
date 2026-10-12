@@ -76,7 +76,7 @@ export default function AiAgentPage() {
       <Card className="min-h-[400px] flex flex-col">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
-            <Bot className="h-5 w-5 text-gold" /> NHBBJ CRM Agent
+            <Bot className="h-5 w-5 text-gold" /> NHBBI CRM Agent
           </CardTitle>
           <CardDescription>Try: “Summarize new leads”, “How many pending member requests?”, or “Show recorded revenue”. This assistant is read-only.</CardDescription>
         </CardHeader>
