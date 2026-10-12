@@ -1,12 +1,12 @@
 import { NextResponse } from 'next/server'
 import { auth } from '@/auth'
-import { isAdmin } from '@/lib/auth'
+import { canAdmin } from '@/lib/admin/access'
 import { db, orders, users } from '@/lib/db'
 import { eq, sql } from 'drizzle-orm'
 
 export async function GET(request: Request) {
   const session = await auth()
-  if (!isAdmin(session?.user)) {
+  if (!(await canAdmin(session?.user?.id, 'orders.view'))) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
