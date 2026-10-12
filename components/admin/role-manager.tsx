@@ -39,7 +39,7 @@ export function RoleManager() {
     <section className="rounded-2xl border bg-white p-6 shadow-sm">
       <h2 id="new-role" className="text-xl font-semibold">{editingId?'Edit staff role':'Create a role'}</h2>
       <p className="my-2 text-sm text-slate-600">Choose the minimum activities this role needs.</p>
-      <form className="space-y-4" onSubmit={async e=>{e.preventDefault();if(await submit('/api/admin/roles',editingId?'PATCH':'POST',{...(editingId?{id:editingId}:{}),name,description,permissions})){setEditingId('');setName('');setDescription('');setPermissions([])}}}>
+      <form className="space-y-4" onSubmit={async e=>{e.preventDefault();if((!editingId || window.confirm('Changing a role changes permissions for everyone assigned to it. Continue?')) && await submit('/api/admin/roles',editingId?'PATCH':'POST',{...(editingId?{id:editingId}:{}),name,description,permissions})){setEditingId('');setName('');setDescription('');setPermissions([])}}}>
         <label className="block text-sm font-medium">Role name<input required minLength={2} maxLength={64} value={name} onChange={e=>setName(e.target.value)} placeholder="Events Coordinator" className="mt-1 w-full rounded-lg border p-3" /></label>
         <label className="block text-sm font-medium">Description<textarea maxLength={240} rows={2} value={description} onChange={e=>setDescription(e.target.value)} className="mt-1 w-full rounded-lg border p-3" /></label>
         <fieldset className="space-y-2"><legend className="mb-2 text-sm font-medium">Permissions</legend>

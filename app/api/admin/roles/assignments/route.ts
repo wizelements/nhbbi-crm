@@ -31,7 +31,9 @@ export async function POST(request: Request) {
   const existing = await db.select({ id: staffRoleAssignments.id }).from(staffRoleAssignments)
     .where(and(eq(staffRoleAssignments.userId, userId), eq(staffRoleAssignments.roleId, roleId))).limit(1)
   if (existing.length) return NextResponse.json({ ok: true, alreadyAssigned: true })
-  await db.insert(staffRoleAssignments).values({ userId, roleId, assignedBy: session.user.id })
+  const created = await db.insert(staffRoleAssignments).values({ userId, roleId, assignedBy: session.user.id })
+    .onConflictDoNothing().returning({ id: staffRoleAssignments.id })
+  if (!created.length) return NextResponse.json({ ok: true, alreadyAssigned: true })
   await logActivity({ actorType: 'user', actorId: session.user.id, action: 'staff_role_assigned', entityType: 'user', entityId: userId, metadata: { roleId } })
   return NextResponse.json({ ok: true }, { status: 201 })
 }
@@ -41,7 +43,9 @@ export async function DELETE(request: Request) {
   const parsed = await validated(request)
   if (!parsed.success) return NextResponse.json({ error: 'Invalid assignment' }, { status: 400 })
   const { userId, roleId } = parsed.data
-  await db.delete(staffRoleAssignments).where(and(eq(staffRoleAssignments.userId, userId), eq(staffRoleAssignments.roleId, roleId)))
+  const deleted = await db.delete(staffRoleAssignments).where(and(eq(staffRoleAssignments.userId, userId), eq(staffRoleAssignments.roleId, roleId)))
+    .returning({ id: staffRoleAssignments.id })
+  if (!deleted.length) return NextResponse.json({ error: 'Assignment not found' }, { status: 404 })
   await logActivity({ actorType: 'user', actorId: session.user.id, action: 'staff_role_revoked', entityType: 'user', entityId: userId, metadata: { roleId } })
   return NextResponse.json({ ok: true })
 }
