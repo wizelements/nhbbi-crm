@@ -3,30 +3,12 @@ import Credentials from 'next-auth/providers/credentials'
 import { eq } from 'drizzle-orm'
 import { z } from 'zod'
 import { db, users } from '@/lib/db'
-import { env } from '@/lib/env'
-import { verifyPassword, isValidRole, isAdminSetupSecret, hashPassword, type UserRole } from '@/lib/auth'
+import { verifyPassword, isValidRole, type UserRole } from '@/lib/auth'
 
 const credentialsSchema = z.object({
   email: z.string().email(),
   password: z.string().min(1),
 })
-
-async function ensureFirstAdmin() {
-  const existing = await db.select().from(users).limit(1)
-  if (existing.length > 0) return
-
-  const email = env.ADMIN_DEFAULT_EMAIL
-  const password = env.ADMIN_DEFAULT_PASSWORD
-  if (password.length < 16 || password === 'ChangeMeNow!') throw new Error('Secure admin bootstrap credentials required')
-  const passwordHash = await hashPassword(password)
-
-  await db.insert(users).values({
-    email,
-    passwordHash,
-    role: 'admin',
-    emailVerified: true,
-  })
-}
 
 export const {
   handlers: { GET, POST },
@@ -50,8 +32,6 @@ export const {
       async authorize(credentials) {
         const parsed = credentialsSchema.safeParse(credentials)
         if (!parsed.success) return null
-
-        await ensureFirstAdmin()
 
         const { email, password } = parsed.data
         const [user] = await db
@@ -101,4 +81,3 @@ export const {
   },
 })
 
-export { isAdminSetupSecret }
