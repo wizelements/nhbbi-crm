@@ -1,4 +1,5 @@
 name: Bounded Next.js 15 security migration
+# Retest after fixing test module resolution
 on:
   push:
     branches: [security/next15-lts-20261012]
