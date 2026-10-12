@@ -20,6 +20,8 @@ jobs:
         run: npm ci
       - name: Move off unsupported Next.js 14
         run: |
+          # Repair the known React 19 peer boundary before upgrading React.
+          npm install --save-exact next-themes@0.4.6
           npm uninstall @next/swc-wasm-nodejs
           npm install --save-exact next@15.5.27 react@19.2.6 react-dom@19.2.6
           npm install --save-dev eslint-config-next@15.5.27 @types/react@^19 @types/react-dom@^19
