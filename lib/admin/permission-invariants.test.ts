@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { PERMISSION_KEYS, DELEGABLE_PERMISSIONS, parsePermissions, validDelegation } from '@/lib/admin/permission-catalog'
+import { PERMISSION_KEYS, DELEGABLE_PERMISSIONS, parsePermissions, validDelegation } from './permission-catalog'
 describe('staff authorization invariants',()=>{
   it('does not delegate owner-only or AI powers',()=>{
     expect(DELEGABLE_PERMISSIONS).not.toContain('roles.manage')
