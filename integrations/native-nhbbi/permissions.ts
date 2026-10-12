@@ -42,8 +42,8 @@ export function parsePermissions(value: unknown): NativePermission[] {
   try {
     const parsed: unknown = JSON.parse(value);
     if (!Array.isArray(parsed)) return [];
-    return [...new Set(parsed.filter((v): v is NativePermission =>
-      typeof v === 'string' && DELEGABLE.some(p => p === v)))];
+    return Array.from(new Set(parsed.filter((v): v is NativePermission =>
+      typeof v === 'string' && DELEGABLE.some(p => p === v))));
   } catch { return []; }
 }
 export function canDelegate(input: unknown): input is NativePermission[] {
