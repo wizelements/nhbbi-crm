@@ -16,7 +16,7 @@ jobs:
           cache: 'npm'
       - run: npm ci
       - name: Install patched major Next.js and matching ESLint config
-        run: npm install --save-exact next@16.4.0 eslint-config-next@16.4.0
+        run: npm install --save-exact next@16.4.0 eslint-config-next@16.4.0 eslint@^9
       - run: npm ci
       - run: npm run typecheck
       - run: npx vitest run lib/admin
