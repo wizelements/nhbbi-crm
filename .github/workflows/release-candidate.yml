@@ -1,0 +1,57 @@
+name: NHBBI release candidate certification
+on:
+  push:
+    branches: [release/nhbbi-admin-candidate-20261012]
+  pull_request:
+    paths:
+      - 'app/**'
+      - 'components/**'
+      - 'lib/**'
+      - 'integrations/native-nhbbi/**'
+      - 'package*.json'
+      - 'next.config.js'
+      - '.github/workflows/release-candidate.yml'
+permissions:
+  contents: read
+jobs:
+  certify:
+    runs-on: ubuntu-latest
+    env:
+      NODE_ENV: production
+      APP_URL: https://nhbbi-fixture.invalid
+      BASE_URL: https://nhbbi-fixture.invalid
+      NEXT_PUBLIC_APP_URL: https://nhbbi-fixture.invalid
+      NEXT_PUBLIC_BASE_URL: https://nhbbi-fixture.invalid
+      CONTACT_EMAIL: ci@nhbbi.invalid
+      SUPPORT_EMAIL: support@nhbbi.invalid
+      TURSO_DATABASE_URL: libsql://ci-database.invalid
+      TURSO_AUTH_TOKEN: fixture-only-not-a-real-token
+      SQUARE_ACCESS_TOKEN: fixture-only-not-a-real-square-token
+      SQUARE_APPLICATION_ID: fixture-square-app
+      SQUARE_LOCATION_ID: fixture-square-location
+      SQUARE_ENVIRONMENT: sandbox
+      JWT_SECRET: fixture-auth-secret-not-for-any-real-app-123456789
+      ADMIN_DEFAULT_PASSWORD: fixture-owner-password-do-not-use-live-1234
+      CRON_SECRET: fixture-cron-not-for-use-0123456789012345678
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+      - name: Exact dependency install
+        run: npm ci --include=dev
+      - name: Runtime dependency safety
+        run: npm audit --omit=dev --audit-level=high
+      - name: TypeScript compile
+        run: npm run typecheck
+      - name: Unit authorization, Square and native adapter tests
+        run: npx vitest run lib/admin lib/notifications/cron-auth.test.ts integrations/native-nhbbi
+      - name: SQLite schema invariants
+        run: |
+          python3 scripts/test-role-migration.py
+          python3 integrations/native-nhbbi/test_migration.py
+      - name: Optimized production build with nonproduction values
+        run: npm run build
+      - name: ESLint 9
+        run: npm run lint
