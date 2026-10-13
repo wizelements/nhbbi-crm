@@ -23,7 +23,7 @@ export default async function AdminEventsPage() {
     <div className="space-y-6">
       <div>
         <h2 className="text-2xl font-bold tracking-tight">Events</h2>
-        <p className="text-muted-foreground">Create, edit, and publish NHBBJ events.</p>
+        <p className="text-muted-foreground">Create, edit, and publish NHBBI events.</p>
       </div>
 
       <Card>

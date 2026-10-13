@@ -13,7 +13,7 @@ async function run() {
   if (process.env.NHBBI_BOOTSTRAP_CONFIRM !== 'I_HAVE_BACKED_UP_THIS_DATABASE') {
     throw new Error('Bootstrap is disabled. Explicit confirmation and backup required.')
   }
-  if (env.ADMIN_DEFAULT_PASSWORD.length < 16 || /changemenow|password123|sample/i.test(env.ADMIN_DEFAULT_PASSWORD)) {
+  if (!env.ADMIN_DEFAULT_PASSWORD || env.ADMIN_DEFAULT_PASSWORD.length < 16 || /changemenow|password123|sample/i.test(env.ADMIN_DEFAULT_PASSWORD)) {
     throw new Error('Generate a unique random administrator password (16+ characters).')
   }
   if (env.TURSO_DATABASE_URL.startsWith('file:') && process.env.NODE_ENV === 'production') {

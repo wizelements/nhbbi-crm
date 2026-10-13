@@ -7,8 +7,8 @@ import { AdminSidebar } from '@/components/admin/admin-sidebar'
 import { AdminHeader } from '@/components/admin/admin-header'
 
 export const metadata: Metadata = {
-  title: 'Admin — NHBBJ CRM',
-  description: 'NHBBJ admin AI CRM dashboard.',
+  title: 'Admin — NHBBI CRM',
+  description: 'NHBBI admin AI CRM dashboard.',
 }
 
 export default async function AdminLayout({

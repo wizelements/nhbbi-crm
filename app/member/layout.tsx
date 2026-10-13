@@ -5,8 +5,8 @@ import { canMember } from '@/lib/admin/access'
 import { MemberShell } from '@/components/member/member-shell'
 
 export const metadata = {
-  title: 'Member Portal — NHBBJ',
-  description: 'Manage your NHBBJ membership, profile, directory listing, jobs, and events.',
+  title: 'Member Portal — NHBBI',
+  description: 'Manage your NHBBI membership, profile, directory listing, jobs, and events.',
 }
 
 export default async function MemberLayout({

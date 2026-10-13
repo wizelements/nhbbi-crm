@@ -1,6 +1,7 @@
 'use client'
 
 import Link from 'next/link'
+import { useState } from 'react'
 import { usePathname } from 'next/navigation'
 import { cn } from '@/lib/utils'
 import {
@@ -13,6 +14,8 @@ import {
   ShoppingCart,
   Bot,
   ShieldCheck,
+  Menu,
+  X,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import type { AuthUser } from '@/lib/auth'
@@ -32,6 +35,7 @@ const navItems = [
 
 export function AdminSidebar({ user, permissions }: { user: AuthUser, permissions: Permission[] }) {
   const pathname = usePathname()
+  const [mobileOpen, setMobileOpen] = useState(false)
   const visibleItems = navItems.filter(item => permissions.includes(item.permission as Permission))
 
   return (
@@ -62,27 +66,41 @@ export function AdminSidebar({ user, permissions }: { user: AuthUser, permission
         })}
       </nav>
 
-      <nav aria-label="Admin navigation" className="flex max-w-[70vw] items-center gap-1 overflow-x-auto md:hidden">
-        {visibleItems.map((item) => {
-          const Icon = item.icon
-          const active = pathname === item.href || pathname.startsWith(`${item.href}/`)
-          return (
-            <Link key={item.href} href={item.href}>
-              <Button
-                size="icon"
-                variant="ghost"
-                className={cn(
-                  'text-white/80 hover:bg-white/10 hover:text-white',
-                  active && 'bg-white/10 text-white'
-                )}
-              >
+      <button
+        type="button"
+        aria-controls="nhbbi-mobile-admin-menu"
+        aria-expanded={mobileOpen}
+        aria-label={mobileOpen ? 'Close administration menu' : 'Open administration menu'}
+        onClick={() => setMobileOpen(open => !open)}
+        className="flex min-h-11 items-center gap-2 rounded-lg border border-white/20 px-3 text-sm font-semibold focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white md:hidden"
+      >
+        {mobileOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+        Menu
+      </button>
+      {mobileOpen && (
+        <nav
+          id="nhbbi-mobile-admin-menu"
+          aria-label="Administration sections"
+          className="absolute inset-x-0 top-16 max-h-[calc(100dvh-4rem)] space-y-1 overflow-y-auto border-b border-white/20 bg-navy p-3 shadow-2xl md:hidden"
+        >
+          <div className="border-b border-white/20 px-3 py-3 text-sm">
+            <p className="truncate font-medium">{user.email}</p>
+            <p className="text-xs text-white/60">Only authorized sections are shown.</p>
+          </div>
+          {visibleItems.map(item => {
+            const Icon = item.icon
+            const active = pathname === item.href || pathname.startsWith(item.href + '/')
+            return (
+              <Link key={item.href} href={item.href} onClick={() => setMobileOpen(false)}
+                aria-current={active ? 'page' : undefined}
+                className={cn('flex min-h-12 items-center gap-3 rounded-lg px-3 py-2 text-sm focus-visible:outline focus-visible:outline-2 focus-visible:outline-white',active?'bg-white/15 font-semibold':'text-white/85 hover:bg-white/10')}>
                 <Icon className="h-5 w-5" />
-                <span className="sr-only">{item.label}</span>
-              </Button>
-            </Link>
-          )
-        })}
-      </nav>
+                <span>{item.label}</span>
+              </Link>
+            )
+          })}
+        </nav>
+      )}
 
       <div className="hidden border-t border-white/10 px-6 py-4 md:block">
         <p className="truncate text-sm font-medium">{user.email}</p>

@@ -112,7 +112,7 @@ export default function MemberProfilePage() {
       <Card>
         <CardHeader>
           <CardTitle>Personal Information</CardTitle>
-          <CardDescription>This information is visible to NHBBJ staff and may appear in the directory.</CardDescription>
+          <CardDescription>This information is visible to NHBBI staff and may appear in the directory.</CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-6">

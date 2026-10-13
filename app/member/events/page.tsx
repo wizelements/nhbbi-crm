@@ -10,7 +10,7 @@ import Link from 'next/link'
 import { formatDateTime } from '@/lib/utils'
 
 export const metadata = {
-  title: 'My Events — NHBBJ Member Portal',
+  title: 'My Events — NHBBI Member Portal',
   description: 'Events you have registered for.',
 }
 
@@ -38,7 +38,7 @@ export default async function MemberEventsPage() {
     <div className="space-y-6">
       <div>
         <h1 className="text-2xl font-bold text-navy">My Events</h1>
-        <p className="text-muted-foreground">Events you have registered for through NHBBJ.</p>
+        <p className="text-muted-foreground">Events you have registered for through NHBBI.</p>
       </div>
 
       {rows.length === 0 && (
