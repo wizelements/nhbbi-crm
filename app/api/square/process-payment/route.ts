@@ -26,7 +26,7 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    const result = await processSquarePayment(parsed.data)
+    const result = await processSquarePayment(parsed.data, session.user.id)
 
     return NextResponse.json({
       success: result.success,

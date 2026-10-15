@@ -1,3 +1,4 @@
+import { deriveSquareIdempotencyKey } from './idempotency'
 import { getSquareClient, getSquareLocationId, squareMoney, fromSquareMoney } from './client'
 import { z } from 'zod'
 
@@ -11,7 +12,7 @@ export const orderLineItemSchema = z.object({
 })
 
 export const createOrderInputSchema = z.object({
-  referenceId: z.string().min(1),
+  referenceId: z.string().trim().min(1).max(128),
   lineItems: z.array(orderLineItemSchema).min(1),
   buyerEmail: z.string().email().optional(),
   buyerPhone: z.string().optional(),
@@ -23,7 +24,7 @@ export const createOrderInputSchema = z.object({
 
 export type CreateOrderInput = z.infer<typeof createOrderInputSchema>
 
-export async function createSquareOrder(input: CreateOrderInput) {
+export async function createSquareOrder(input: CreateOrderInput, actorId: string) {
   const parsed = createOrderInputSchema.parse(input)
   const square = getSquareClient()
   const locationId = getSquareLocationId()
@@ -63,7 +64,7 @@ export async function createSquareOrder(input: CreateOrderInput) {
   }
 
   const response = await square.ordersApi.createOrder({
-    idempotencyKey: crypto.randomUUID(),
+    idempotencyKey: deriveSquareIdempotencyKey('order', actorId, parsed.referenceId),
     order: orderRequest as unknown as NonNullable<Parameters<typeof square.ordersApi.createOrder>[0]['order']>,
   })
 
