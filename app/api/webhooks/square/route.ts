@@ -1,3 +1,4 @@
+import { arePreviewSquareTransactionsDisabled } from '@/lib/square/preview-gate'
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
 
@@ -16,6 +17,9 @@ import { orders, memberships, eventRegistrations } from '@/lib/db/schema'
 import { eq } from 'drizzle-orm'
 
 export async function POST(request: NextRequest) {
+  if (arePreviewSquareTransactionsDisabled()) {
+    return NextResponse.json({ error: 'Square webhooks are disabled in preview' }, { status: 503 })
+  }
   const startTime = Date.now()
   let eventType = 'unknown'
   let eventId = 'unknown'
@@ -91,6 +95,9 @@ export async function POST(request: NextRequest) {
 }
 
 export async function GET() {
+  if (arePreviewSquareTransactionsDisabled()) {
+    return NextResponse.json({ status: 'disabled', environment: 'preview', paymentProcessing: false }, { status: 503 })
+  }
   return NextResponse.json({
     status: 'active',
     environment: process.env.SQUARE_ENVIRONMENT || 'sandbox',
