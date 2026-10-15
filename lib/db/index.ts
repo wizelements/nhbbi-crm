@@ -13,8 +13,12 @@ if (!configured && !isReadOnlyPreview()) {
 // routes are rejected in middleware before execution. The placeholder client
 // throws if a future route attempts to query through it regardless.
 const unavailableClient = new Proxy({} as ReturnType<typeof createClient>, {
+  // The ORM reads client methods while constructing its driver. Return a
+  // function here, but fail closed if any database method is actually called.
   get() {
-    throw new Error('Database access is disabled in this read-only preview')
+    return () => {
+      throw new Error('Database access is disabled in this read-only preview')
+    }
   },
 })
 const client = configured
