@@ -33,6 +33,8 @@ export const env = createEnv({
     NEXT_PUBLIC_APP_URL: z.string().url(),
     NEXT_PUBLIC_BASE_URL: z.string().url(),
   },
+  // Static, no-credentials preview only. Runtime API/auth are blocked separately.
+  skipValidation: process.env.VERCEL_ENV === 'preview' && process.env.NHBBI_PREVIEW_READ_ONLY === 'true',
   runtimeEnv: {
     NODE_ENV: process.env.NODE_ENV,
     APP_URL: process.env.APP_URL,
