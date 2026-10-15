@@ -27,7 +27,7 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    const order = await createSquareOrder(parsed.data)
+    const order = await createSquareOrder(parsed.data, session.user.id)
 
     return NextResponse.json({
       success: true,
