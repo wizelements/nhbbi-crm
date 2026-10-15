@@ -1,3 +1,4 @@
+import { arePreviewSquareTransactionsDisabled } from '@/lib/square/preview-gate'
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
 
@@ -7,6 +8,9 @@ import { auth } from '@/lib/auth/index'
 import { z } from 'zod'
 
 export async function POST(request: NextRequest) {
+  if (arePreviewSquareTransactionsDisabled()) {
+    return NextResponse.json({ success: false, error: 'Square payment services are disabled in preview' }, { status: 503 })
+  }
   try {
     const session = await auth()
     if (!session?.user) {
@@ -23,7 +27,7 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    const order = await createSquareOrder(parsed.data)
+    const order = await createSquareOrder(parsed.data, session.user.id)
 
     return NextResponse.json({
       success: true,

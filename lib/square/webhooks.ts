@@ -59,11 +59,30 @@ export function isWebhookVerificationSkipped(): boolean {
   )
 }
 
+export type SquareMoney = { amount?: string | number | bigint }
+export type SquareRawPayment = {
+  id?: string
+  order_id?: string
+  reference_id?: string
+  status?: string
+  total_money?: SquareMoney
+  receipt_url?: string
+  card_details?: {card?: {card_brand?: string; last_4?: string}}
+}
+export type SquareRawOrder = {
+  id?: string
+  state?: string
+  version?: number
+  total_money?: SquareMoney
+}
 export interface SquareWebhookEvent {
   type: string
   eventId: string
   createdAt?: string
-  data?: any
+  data?: { object?: SquareRawPayment & SquareRawOrder & {
+    payment?: SquareRawPayment
+    order?: SquareRawOrder
+  } }
 }
 
 export function parseSquareWebhookBody(rawBody: string): SquareWebhookEvent {

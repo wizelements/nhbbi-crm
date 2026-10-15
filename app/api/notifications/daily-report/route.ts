@@ -3,11 +3,10 @@ import { db, users, memberships, directoryListings, leads, orders, events } from
 import { eq, sql, and, gte } from 'drizzle-orm'
 import { sendTelegramAlert, formatAlert } from '@/lib/notifications/telegram'
 import { env } from '@/lib/env'
+import { verifyCronAuthorization } from '@/lib/notifications/cron-auth'
 
 export async function GET(request: Request) {
-  const { searchParams } = new URL(request.url)
-  const secret = searchParams.get('secret')
-  if (secret !== env.CRON_SECRET) {
+  if (!verifyCronAuthorization(request.headers.get('authorization'), env.CRON_SECRET)) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 

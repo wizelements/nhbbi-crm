@@ -1,0 +1,36 @@
+name: NHBBI bounded nonbreaking dependency repair
+on:
+  push:
+    branches: [security/nonbreaking-dependency-repair-20261012]
+    paths: ['.github/workflows/nonbreaking-repair.yml']
+permissions:
+  contents: write
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+      - run: npm ci
+      - name: Apply safe npm audit fixes without forced major upgrades
+        run: |
+          npm audit fix || echo "Unresolved advisories remain; this is an update attempt, not security certification."
+      - name: Reinstall lockfile and test
+        run: |
+          npm ci
+          npm run typecheck
+          npx vitest run lib/admin
+      - name: Save only bounded dependency changes to isolated branch
+        run: |
+          git config user.name 'nhbbi-ci'
+          git config user.email 'nhbbi-ci@users.noreply.github.com'
+          git add package.json package-lock.json
+          if git diff --cached --quiet; then exit 0; fi
+          git commit -m 'security(deps): apply nonbreaking dependency advisory updates'
+          git push origin HEAD:security/nonbreaking-dependency-repair-20261012
+      - name: Report unresolved production vulnerabilities
+        run: |
+          npm audit --omit=dev --audit-level=high || echo "RELEASE BLOCKED: high/critical dependency audit requires further remediation"

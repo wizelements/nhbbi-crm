@@ -1,5 +1,6 @@
 import { Client, Environment } from 'square'
 import { env } from '@/lib/env'
+import { assertSquareTransactionsAllowed } from './preview-gate'
 
 export type SquareEnvironment = 'sandbox' | 'production'
 
@@ -11,6 +12,7 @@ export function getSquareEnvironment(): SquareEnvironment {
 }
 
 export function getSquareClient(): Client {
+  assertSquareTransactionsAllowed()
   const environment = getSquareEnvironment()
 
   if (cachedClient && cachedEnvironment === environment) {

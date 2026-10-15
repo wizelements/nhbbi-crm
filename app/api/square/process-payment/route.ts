@@ -1,3 +1,4 @@
+import { arePreviewSquareTransactionsDisabled } from '@/lib/square/preview-gate'
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
 
@@ -6,6 +7,9 @@ import { processSquarePayment, processPaymentInputSchema } from '@/lib/square/pa
 import { auth } from '@/lib/auth/index'
 
 export async function POST(request: NextRequest) {
+  if (arePreviewSquareTransactionsDisabled()) {
+    return NextResponse.json({ success: false, error: 'Square payment services are disabled in preview' }, { status: 503 })
+  }
   try {
     const session = await auth()
     if (!session?.user) {
@@ -22,7 +26,7 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    const result = await processSquarePayment(parsed.data)
+    const result = await processSquarePayment(parsed.data, session.user.id)
 
     return NextResponse.json({
       success: result.success,

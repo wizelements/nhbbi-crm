@@ -22,10 +22,6 @@ export async function verifyPassword(password: string, hash: string): Promise<bo
   return bcrypt.compare(password, hash)
 }
 
-export function isAdminSetupSecret(secret: string): boolean {
-  return secret === env.ADMIN_SETUP_SECRET
-}
-
 export function isValidRole(role: unknown): role is UserRole {
   return typeof role === 'string' && ['visitor', 'member', 'admin'].includes(role)
 }

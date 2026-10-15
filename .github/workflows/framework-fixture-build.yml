@@ -1,0 +1,41 @@
+name: NHBBI isolated framework compile
+on:
+  push:
+    branches: [security/next15-lts-20261012, security/next16-review-20261012]
+    paths: ['.github/workflows/framework-fixture-build.yml','next.config.js','package.json','package-lock.json','eslint.config.mjs','app/**','components/**','lib/**','tailwind.config.ts']
+permissions:
+  contents: read
+jobs:
+  compile:
+    runs-on: ubuntu-latest
+    env:
+      NODE_ENV: production
+      APP_URL: https://nhbbi-ci.invalid
+      BASE_URL: https://nhbbi-ci.invalid
+      NEXT_PUBLIC_APP_URL: https://nhbbi-ci.invalid
+      NEXT_PUBLIC_BASE_URL: https://nhbbi-ci.invalid
+      CONTACT_EMAIL: ci@nhbbi.invalid
+      SUPPORT_EMAIL: support@nhbbi.invalid
+      TURSO_DATABASE_URL: libsql://ci-db.invalid
+      TURSO_AUTH_TOKEN: synthetic-test-token-not-a-real-credential
+      SQUARE_ACCESS_TOKEN: synthetic-square-sandbox-not-a-token
+      SQUARE_APPLICATION_ID: synthetic-ci-app
+      SQUARE_LOCATION_ID: synthetic-ci-location
+      SQUARE_ENVIRONMENT: sandbox
+      JWT_SECRET: synthetic-ci-jwt-not-a-real-secret-000000000000
+      ADMIN_SETUP_SECRET: synthetic-ci-admin-setup
+      ADMIN_DEFAULT_PASSWORD: synthetic-nonproduction-strong-password
+      ADMIN_API_TOKEN: synthetic-ci-admin-token
+      AI_AGENT_SECRET: synthetic-ci-agent-token
+      CRON_SECRET: synthetic-ci-cron-secret-000000000000000000
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+      - run: npm ci --include=dev
+      - name: Compile only with synthetic values; NOT runtime or payment certification
+        run: npm run build
+      - name: Lint upgraded application
+        run: npm run lint

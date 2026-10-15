@@ -1,3 +1,4 @@
+import { arePreviewSquareTransactionsDisabled } from '@/lib/square/preview-gate'
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
 
@@ -8,12 +9,17 @@ import {
   isWebhookVerificationSkipped,
   parseSquareWebhookBody,
   mapSquarePaymentStatus,
+  type SquareRawPayment,
+  type SquareRawOrder,
 } from '@/lib/square/webhooks'
 import { db } from '@/lib/db'
 import { orders, memberships, eventRegistrations } from '@/lib/db/schema'
 import { eq } from 'drizzle-orm'
 
 export async function POST(request: NextRequest) {
+  if (arePreviewSquareTransactionsDisabled()) {
+    return NextResponse.json({ error: 'Square webhooks are disabled in preview' }, { status: 503 })
+  }
   const startTime = Date.now()
   let eventType = 'unknown'
   let eventId = 'unknown'
@@ -89,6 +95,9 @@ export async function POST(request: NextRequest) {
 }
 
 export async function GET() {
+  if (arePreviewSquareTransactionsDisabled()) {
+    return NextResponse.json({ status: 'disabled', environment: 'preview', paymentProcessing: false }, { status: 503 })
+  }
   return NextResponse.json({
     status: 'active',
     environment: process.env.SQUARE_ENVIRONMENT || 'sandbox',
@@ -103,7 +112,7 @@ export async function GET() {
   })
 }
 
-async function handlePaymentWebhook(payment: any) {
+async function handlePaymentWebhook(payment: SquareRawPayment) {
   const referenceId = payment.reference_id
   const squareOrderId = payment.order_id
   const squarePaymentId = payment.id
@@ -116,7 +125,7 @@ async function handlePaymentWebhook(payment: any) {
 
   const existingOrder = referenceId
     ? await db.query.orders.findFirst({ where: eq(orders.id, referenceId) })
-    : await db.query.orders.findFirst({ where: eq(orders.squareOrderId, squareOrderId) })
+    : squareOrderId ? await db.query.orders.findFirst({ where: eq(orders.squareOrderId, squareOrderId) }) : null
 
   if (!existingOrder) {
     return
@@ -167,7 +176,7 @@ async function handlePaymentWebhook(payment: any) {
   }
 }
 
-async function handleOrderWebhook(squareOrder: any) {
+async function handleOrderWebhook(squareOrder: SquareRawOrder) {
   const squareOrderId = squareOrder.id
   if (!squareOrderId) return
 

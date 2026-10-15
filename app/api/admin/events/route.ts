@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
 import { auth } from '@/auth'
-import { isAdmin } from '@/lib/auth'
+import { canAdmin } from '@/lib/admin/access'
 import { db, events } from '@/lib/db'
 import { eq, sql, like } from 'drizzle-orm'
 import { z } from 'zod'
@@ -21,7 +21,7 @@ const eventSchema = z.object({
 
 export async function GET(request: Request) {
   const session = await auth()
-  if (!session || !isAdmin(session.user)) {
+  if (!session || !(await canAdmin(session?.user?.id, 'events.view'))) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
@@ -39,7 +39,7 @@ export async function GET(request: Request) {
 
 export async function POST(request: Request) {
   const session = await auth()
-  if (!session || !isAdmin(session.user)) {
+  if (!session || !(await canAdmin(session?.user?.id, 'events.manage'))) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
@@ -89,7 +89,7 @@ export async function POST(request: Request) {
 
 export async function DELETE(request: Request) {
   const session = await auth()
-  if (!session || !isAdmin(session.user)) {
+  if (!session || !(await canAdmin(session?.user?.id, 'events.manage'))) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 

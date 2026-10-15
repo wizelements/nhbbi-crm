@@ -1,6 +1,6 @@
 import { redirect } from 'next/navigation'
 import { auth } from '@/auth'
-import { isMember } from '@/lib/auth'
+import { canMember } from '@/lib/admin/access'
 import { db, events, eventRegistrations } from '@/lib/db'
 import { eq, desc } from 'drizzle-orm'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
@@ -10,7 +10,7 @@ import Link from 'next/link'
 import { formatDateTime } from '@/lib/utils'
 
 export const metadata = {
-  title: 'My Events — NHBBJ Member Portal',
+  title: 'My Events — NHBBI Member Portal',
   description: 'Events you have registered for.',
 }
 
@@ -28,7 +28,7 @@ async function getRegisteredEvents(userId: string) {
 
 export default async function MemberEventsPage() {
   const session = await auth()
-  if (!session || !isMember(session.user)) {
+  if (!session?.user?.id || !(await canMember(session.user.id))) {
     redirect('/login?callbackUrl=/member/events')
   }
 
@@ -38,7 +38,7 @@ export default async function MemberEventsPage() {
     <div className="space-y-6">
       <div>
         <h1 className="text-2xl font-bold text-navy">My Events</h1>
-        <p className="text-muted-foreground">Events you have registered for through NHBBJ.</p>
+        <p className="text-muted-foreground">Events you have registered for through NHBBI.</p>
       </div>
 
       {rows.length === 0 && (

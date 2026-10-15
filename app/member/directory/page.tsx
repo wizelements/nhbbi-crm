@@ -115,7 +115,7 @@ export default function MemberDirectoryPage() {
     <div className="mx-auto max-w-3xl space-y-6">
       <div>
         <h1 className="text-2xl font-bold text-navy">Directory Listing</h1>
-        <p className="text-muted-foreground">Showcase your business in the NHBBJ member directory.</p>
+        <p className="text-muted-foreground">Showcase your business in the NHBBI member directory.</p>
       </div>
 
       {message && (

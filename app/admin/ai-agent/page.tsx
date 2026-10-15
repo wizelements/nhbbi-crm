@@ -20,7 +20,7 @@ export default function AiAgentPage() {
     {
       role: 'agent',
       content:
-        'I am the NHBBJ CRM agent. I can summarize leads, approve members, feature directory listings, create event stubs, and run other safe admin actions. What would you like me to do?',
+        'I can summarize NHBBI CRM leads, member requests, business directory reviews, events and recorded payments. For safety, I never change records from chat.',
     },
   ])
   const [loading, setLoading] = useState(false)
@@ -70,15 +70,15 @@ export default function AiAgentPage() {
     <div className="mx-auto max-w-4xl space-y-6">
       <div>
         <h1 className="text-2xl font-bold tracking-tight">AI Agent Console</h1>
-        <p className="text-muted-foreground">Natural-language assistant for safe CRM actions. Every action is logged.</p>
+        <p className="text-muted-foreground">Read-only operational insights. Changes require individual review in the admin workspace.</p>
       </div>
 
       <Card className="min-h-[400px] flex flex-col">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
-            <Bot className="h-5 w-5 text-gold" /> NHBBJ CRM Agent
+            <Bot className="h-5 w-5 text-gold" /> NHBBI CRM Agent
           </CardTitle>
-          <CardDescription>Try: “Summarize new leads”, “Approve all pending members”, or “Create a Kingdom Connections event next Friday”.</CardDescription>
+          <CardDescription>Try: “Summarize new leads”, “How many pending member requests?”, or “Show recorded revenue”. This assistant is read-only.</CardDescription>
         </CardHeader>
         <CardContent className="flex-1 space-y-4">
           <div className="space-y-4">

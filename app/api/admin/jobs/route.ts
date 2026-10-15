@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
 import { auth } from '@/auth'
-import { isAdmin } from '@/lib/auth'
+import { canAdmin } from '@/lib/admin/access'
 import { db, jobs } from '@/lib/db'
 import { eq } from 'drizzle-orm'
 import { z } from 'zod'
@@ -13,7 +13,7 @@ const updateSchema = z.object({
 
 export async function GET(request: Request) {
   const session = await auth()
-  if (!session || !isAdmin(session.user)) {
+  if (!session || !(await canAdmin(session?.user?.id, 'jobs.view'))) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
@@ -33,7 +33,7 @@ export async function GET(request: Request) {
 
 export async function PATCH(request: Request) {
   const session = await auth()
-  if (!session || !isAdmin(session.user)) {
+  if (!session || !(await canAdmin(session?.user?.id, 'jobs.moderate'))) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
@@ -63,7 +63,7 @@ export async function PATCH(request: Request) {
 
 export async function DELETE(request: Request) {
   const session = await auth()
-  if (!session || !isAdmin(session.user)) {
+  if (!session || !(await canAdmin(session?.user?.id, 'jobs.moderate'))) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 

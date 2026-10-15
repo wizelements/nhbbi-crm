@@ -1,3 +1,4 @@
+import { deriveSquareIdempotencyKey } from './idempotency'
 import { getSquareClient, getSquareLocationId } from './client'
 import { createSquareOrder, calculateOrderTotal, type CreateOrderInput } from './orders'
 import { z } from 'zod'
@@ -5,7 +6,7 @@ import { z } from 'zod'
 export const processPaymentInputSchema = z.object({
   sourceId: z.string().min(1),
   verificationToken: z.string().optional(),
-  referenceId: z.string().min(1),
+  referenceId: z.string().trim().min(1).max(128),
   lineItems: z.array(
     z.object({
       name: z.string().min(1),
@@ -26,7 +27,7 @@ export const processPaymentInputSchema = z.object({
 
 export type ProcessPaymentInput = z.infer<typeof processPaymentInputSchema>
 
-export async function processSquarePayment(input: ProcessPaymentInput) {
+export async function processSquarePayment(input: ProcessPaymentInput, actorId: string) {
   const parsed = processPaymentInputSchema.parse(input)
   const square = getSquareClient()
   const locationId = getSquareLocationId()
@@ -42,7 +43,7 @@ export async function processSquarePayment(input: ProcessPaymentInput) {
     metadata: parsed.metadata,
   }
 
-  const order = await createSquareOrder(orderInput)
+  const order = await createSquareOrder(orderInput, actorId)
 
   const serverTotal = await calculateOrderTotal(parsed.lineItems)
   if (order.totalCents !== serverTotal.totalCents) {
@@ -52,6 +53,7 @@ export async function processSquarePayment(input: ProcessPaymentInput) {
   }
 
   const paymentRequest: Record<string, unknown> = {
+    idempotencyKey: deriveSquareIdempotencyKey('payment', actorId, parsed.referenceId),
     locationId,
     sourceId: parsed.sourceId,
     amountMoney: {
@@ -68,7 +70,7 @@ export async function processSquarePayment(input: ProcessPaymentInput) {
     paymentRequest.verificationToken = parsed.verificationToken
   }
 
-  const response = await square.paymentsApi.createPayment(paymentRequest as any)
+  const response = await square.paymentsApi.createPayment(paymentRequest as unknown as Parameters<typeof square.paymentsApi.createPayment>[0])
   const payment = response.result.payment
 
   if (!payment?.id) {
