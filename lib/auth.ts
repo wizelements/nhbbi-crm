@@ -2,6 +2,8 @@ import bcrypt from 'bcryptjs'
 import { SignJWT, jwtVerify } from 'jose'
 import { env } from '@/lib/env'
 
+export { isAdmin, isMember } from './middleware-policy'
+
 export type UserRole = 'visitor' | 'member' | 'admin'
 
 export interface AuthUser {
@@ -34,14 +36,6 @@ export function hasRole(user: { role: UserRole } | null | undefined, role: UserR
   if (!user) return false
   if (user.role === 'admin') return true
   return user.role === role
-}
-
-export function isAdmin(user: { role: UserRole } | null | undefined): boolean {
-  return user?.role === 'admin'
-}
-
-export function isMember(user: { role: UserRole } | null | undefined): boolean {
-  return user?.role === 'member' || user?.role === 'admin'
 }
 
 export async function signJwt(payload: Record<string, unknown>): Promise<string> {
